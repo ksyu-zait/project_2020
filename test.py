@@ -1,4 +1,4 @@
-
+import numpy as np
 from numpy import loadtxt
 import tensorflow as tf
 import h5py
@@ -16,4 +16,6 @@ def prepare(filepath):
 
 
 prediction = model.predict([prepare('image.png')])
-print(prediction)  # will be a list in a list.
+
+#print(np.argmax(prediction[0]))
+print("X=%s, Probability=%s" % (np.argmax(prediction[0]), prediction[0][np.argmax(prediction[0])]*100))

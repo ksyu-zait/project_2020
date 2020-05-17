@@ -1,7 +1,10 @@
 import sys
+import os
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+from test import testing
+from mnist_trainedCNN import learner
 
 class Drawer(QWidget):
     def __init__(self, parent=None):
@@ -9,7 +12,7 @@ class Drawer(QWidget):
         self.setAttribute(Qt.WA_StaticContents)
         h = 250
         w = 250
-        self.myPenWidth = 5
+        self.myPenWidth = 20
         self.myPenColor = Qt.black
         self.image = QImage(w, h, QImage.Format_RGB32)
         self.path = QPainterPath()
@@ -71,33 +74,51 @@ class MainWind(QMainWindow):
     def initUI(self):
 
         drawer = Drawer()
-        exitAction = QAction(QIcon('web.png'), 'Exit', self)
-        exitAction.setStatusTip('Exit application')
+        exitAction = QAction('Выход', self)
         exitAction.triggered.connect(qApp.quit)
         menubar = self.menuBar()
         fileMenu = menubar.addMenu('File')
         fileMenu.addAction(exitAction)
         probab = QLabel('Достоверность определения: ')
+        prr = QLabel(' ')
         answer = QLabel('Вы нарисовали цифру: ')
         title = QLabel('Нарисуйте цифру в области справа')
         delpict = QPushButton('Очистить', self)
         delpict.clicked.connect(lambda: drawer.clearImage())
         photo = QPushButton('Обработать изображение', self)
-        photo.clicked.connect(lambda: drawer.saveImage("image.png", "PNG"))
+        photo.clicked.connect(lambda: self.recognition(drawer, answer, prr, 'image.png'))
+        learning = QPushButton('Обучить сеть', self)
+        learning.clicked.connect(lambda: self.learn())
 
 
         grid = QGridLayout()
         grid.addWidget(title, 1, 0)
-        grid.addWidget(probab, 2, 0)
-        grid.addWidget(answer, 3, 0)
-        grid.addWidget(delpict, 4, 0)
-        grid.addWidget(photo, 5, 0)
-        grid.addWidget(drawer, 1, 1, 5, 1)
+        grid.addWidget(probab, 3, 0)
+        grid.addWidget(prr, 4, 0)
+        grid.addWidget(answer, 2, 0)
+        grid.addWidget(delpict, 5, 0)
+        grid.addWidget(photo, 6, 0)
+        grid.addWidget(learning, 7, 0)
+        grid.addWidget(drawer, 1, 1, 7, 1)
         self.setCentralWidget(QWidget())
         self.centralWidget().setLayout(grid)
 
         self.setGeometry(700, 400, 550, 310)
-        self.setWindowTitle('Main Window')
+        self.setWindowTitle('DigitRecognizer')
+        self.setWindowIcon(QIcon('web.jpg'))
+
+    def recognition(self, drawer, answer, prr, file):
+        drawer.saveImage("image.png", "PNG")
+        try:
+            ans, pr = testing(file)
+            answer.setText('Вы нарисовали цифру: ' + str(ans))
+            prr.setText(str(pr))
+        except:
+            QMessageBox.critical(self, "Ошибка ", "Нейросеть не обучена!", QMessageBox.Ok)
+
+    def learn(self):
+        learner()
+        QMessageBox.information(self, 'Поздравляем!', "Сеть обучена!")
 
 
 if __name__ == '__main__':
